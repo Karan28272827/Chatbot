@@ -9,7 +9,6 @@ import pygame
 import tempfile
 import speech_recognition as sr
 
-
 # Define the Chatbot API URL and headers
 api_url = "https://llm.kindo.ai/v1/chat/completions"
 headers = {
@@ -21,8 +20,8 @@ headers = {
 elevenlabs_client = ElevenLabs(api_key="ae38aba75e228787e91ac4991fc771f8")  # Replace with your ElevenLabs API key
 
 # Function to extract text from PDF
-def extract_text_from_pdf(file_path , file_path_2):
-    pdf_reader = PdfReader(file_path , file_path_2)
+def extract_text_from_pdf(uploaded_pdf):
+    pdf_reader = PdfReader(uploaded_pdf)
     text = ""
     for page in pdf_reader.pages:
         text += page.extract_text()
@@ -77,10 +76,10 @@ def text_to_speech(text, voice_id="voice_id"):
         audio_stream = elevenlabs_client.text_to_speech.convert_as_stream(
             voice_id=voice_id,
             text=text, 
-            model_id = "eleven_multilingual_v2", # Added missing comma here
+            model_id="eleven_multilingual_v2", # Added missing comma here
             voice_settings=VoiceSettings(stability=0.5,
-		similarity_boost=0.75,
-		style=0.0)
+                                         similarity_boost=0.75,
+                                         style=0.0)
         )
         play_audio_stream(audio_stream)
     except Exception as e:
@@ -112,34 +111,33 @@ def main():
     if "qa_history" not in st.session_state:
         st.session_state.qa_history = []
 
-    # Hardcoded PDF file path
-    pdf_file_path = "D:\Chatbot\speaker_3_transcription.pdf"  # Replace with the path to your hardcoded PDF file
-    pdf_file_path_2 = "D:\Chatbot\Navin_Kale_Swayam_Talks_Expanded_Corrected.pdf"
-    # Extract text from the hardcoded PDF
-    try:
-        context = extract_text_from_pdf(pdf_file_path, pdf_file_path_2)
-        
-    except FileNotFoundError:
-        st.error("The hardcoded PDF file was not found. Please check the file path.")
-        return
+    # Upload PDF file
+    uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"])
+    if uploaded_pdf:
+        try:
+            # Extract text from the uploaded PDF
+            context = extract_text_from_pdf(uploaded_pdf)
+        except Exception as e:
+            st.error(f"Error extracting text from PDF: {e}")
+            return
 
-    # Input for questions (either type or speak)
-    question_type = st.radio("How do you want to ask the question?", ("Type", "Speak"))
+        # Input for questions (either type or speak)
+        question_type = st.radio("How do you want to ask the question?", ("Type", "Speak"))
 
-    if question_type == "Type":
-        question = st.text_input("Ask a question:")
-    elif question_type == "Speak":
-        question = speech_to_text()
+        if question_type == "Type":
+            question = st.text_input("Ask a question:")
+        elif question_type == "Speak":
+            question = speech_to_text()
 
-    if question:
-        # Get the answer from the API
-        answer = ask_question(question, context, model_name="azure/gpt-4o")
-        if answer:
-            # Add question and answer to session state
-            st.session_state.qa_history.append((question, answer))
-            
-            # Convert answer to speech
-            text_to_speech(answer, voice_id="okq89CVMFdUItYbOQspc")  # Replace with your ElevenLabs voice ID
+        if question:
+            # Get the answer from the API
+            answer = ask_question(question, context, model_name="azure/gpt-4o")
+            if answer:
+                # Add question and answer to session state
+                st.session_state.qa_history.append((question, answer))
+                
+                # Convert answer to speech
+                text_to_speech(answer, voice_id="okq89CVMFdUItYbOQspc")  # Replace with your ElevenLabs voice ID
 
     # Display Q&A history
     if st.session_state.qa_history:
