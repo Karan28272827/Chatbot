@@ -1,8 +1,8 @@
 import streamlit as st
 import requests
 import json
-from PyPDF2 import PdfReader
 from docx import Document
+from PyPDF2 import PdfReader
 from elevenlabs import ElevenLabs
 from elevenlabs import VoiceSettings
 import pygame
