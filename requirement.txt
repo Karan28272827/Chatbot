@@ -5,4 +5,4 @@ python-docx
 elevenlabs
 pygame
 SpeechRecognition
-pyaudio
+./libs/pyaudio.whl  
