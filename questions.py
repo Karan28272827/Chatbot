@@ -27,7 +27,7 @@ def extract_text_from_pdf(uploaded_pdf):
         text += page.extract_text()
     return text
 
-# Function to extract text from Word file
+# Function to extract text from Word file (if needed in the future)
 def extract_text_from_word(file):
     doc = Document(file)
     text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
@@ -76,7 +76,7 @@ def text_to_speech(text, voice_id="voice_id"):
         audio_stream = elevenlabs_client.text_to_speech.convert_as_stream(
             voice_id=voice_id,
             text=text, 
-            model_id="eleven_multilingual_v2", # Added missing comma here
+            model_id="eleven_multilingual_v2", 
             voice_settings=VoiceSettings(stability=0.5,
                                          similarity_boost=0.75,
                                          style=0.0)
@@ -143,7 +143,7 @@ def main():
     if st.session_state.qa_history:
         st.write("### Question-Answer History:")
         for i, (q, a) in enumerate(st.session_state.qa_history, 1):
-            with st.expander(f"Q{i}: {q}"):
+            with st.expander(f"Q{i}: {q}") as exp:
                 st.write(a)
 
 if __name__ == "__main__":
