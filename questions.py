@@ -8,6 +8,8 @@ from elevenlabs import VoiceSettings
 import pygame
 import tempfile
 import speech_recognition as sr
+from google.cloud import speech
+import io
 
 # Define the Chatbot API URL and headers
 api_url = "https://llm.kindo.ai/v1/chat/completions"
@@ -85,22 +87,38 @@ def text_to_speech(text, voice_id="voice_id"):
     except Exception as e:
         st.error(f"Text-to-speech conversion failed: {e}")
 
-# Function to capture speech and convert it to text using speech_recognition
+# Function to capture speech and convert it to text using Google Cloud Speech-to-Text
 def speech_to_text():
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
         st.write("Say something...")
         audio = recognizer.listen(source)
         try:
-            # Use Google's speech recognition (offline works in most cases)
-            recognized_text = recognizer.recognize_google(audio)
+            # Using Google Cloud Speech-to-Text API
+            client = speech.SpeechClient()
+            
+            # Converts speech to text
+            audio_content = audio.get_wav_data()
+
+            # Send audio to Google Cloud Speech API
+            audio_recognition = speech.RecognitionAudio(content=audio_content)
+            config = speech.RecognitionConfig(
+                encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+                sample_rate_hertz=16000,
+                language_code="en-US",
+            )
+
+            response = client.recognize(config=config, audio=audio_recognition)
+
+            # Extract and return the recognized text
+            recognized_text = ""
+            for result in response.results:
+                recognized_text += result.alternatives[0].transcript
+
             st.write(f"Recognized: {recognized_text}")
             return recognized_text
-        except sr.UnknownValueError:
-            st.error("Could not understand the audio. Please try again.")
-            return ""
-        except sr.RequestError as e:
-            st.error(f"Speech recognition service error: {e}")
+        except Exception as e:
+            st.error(f"Error with speech recognition: {e}")
             return ""
 
 # Streamlit app
