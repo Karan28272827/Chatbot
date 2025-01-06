@@ -11,6 +11,10 @@ import speech_recognition as sr
 from google.cloud import speech
 from google.oauth2 import service_account
 import os
+import pygame
+
+pygame.mixer.init()
+
 
 # Define the Chatbot API URL and headers
 api_url = "https://llm.kindo.ai/v1/chat/completions"
@@ -57,7 +61,9 @@ def ask_question(question, context, model_name="azure/gpt-4o"):
 
 # Function to play audio using pygame (with pause functionality)
 def play_audio_stream(audio_stream):
-    pygame.mixer.init()
+    # Ensure pygame mixer is initialized
+    if not pygame.mixer.get_init():
+        pygame.mixer.init()
 
     # Save audio stream to a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
