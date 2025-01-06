@@ -1,8 +1,18 @@
 streamlit
 requests
+<<<<<<< HEAD
 python-docx
 PyPDF2
 elevenlabs
 pygame
 google-cloud-speech
 speechrecognition
+=======
+google-cloud-speech
+google-auth
+google-auth-oauthlib
+gTTS
+simpleaudio
+PyPDF2
+docx
+>>>>>>> 46e542bda26a677eedbe859333fd00e49ee39f8f
