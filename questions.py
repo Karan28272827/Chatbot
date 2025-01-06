@@ -113,8 +113,8 @@ def main():
         st.session_state.qa_history = []
 
     # Hardcoded PDF file path
-    pdf_file_path = "D:/Chatbot/speaker_3_transcription.pdf"  # Replace with the path to your hardcoded PDF file
-    pdf_file_path_2 = "D:/Chatbot/Navin_Kale_Swayam_Talks_Expanded_Corrected.pdf"
+    pdf_file_path = "D:\Chatbot\speaker_3_transcription.pdf"  # Replace with the path to your hardcoded PDF file
+    pdf_file_path_2 = "D:\Chatbot\Navin_Kale_Swayam_Talks_Expanded_Corrected.pdf"
     # Extract text from the hardcoded PDF
     try:
         context = extract_text_from_pdf(pdf_file_path, pdf_file_path_2)
