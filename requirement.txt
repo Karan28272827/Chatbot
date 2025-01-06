@@ -1,7 +1,0 @@
-streamlit
-requests
-PyPDF2
-python-docx
-elevenlabs
-pygame
-SpeechRecognition

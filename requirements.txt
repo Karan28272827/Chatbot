@@ -4,9 +4,4 @@ PyPDF2
 python-docx
 elevenlabs
 pygame
-<<<<<<< HEAD:requirement.txt
 SpeechRecognition
-=======
-SpeechRecognition
-pyaudio
->>>>>>> ac22b3545f8f55241bf93d0f0b0747ad3893bd83:requirements.txt
