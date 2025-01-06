@@ -3,18 +3,12 @@ import requests
 import json
 from docx import Document
 from PyPDF2 import PdfReader
-from elevenlabs import ElevenLabs
-from elevenlabs import VoiceSettings
-import pygame
-import tempfile
-import speech_recognition as sr
 from google.cloud import speech
 from google.oauth2 import service_account
+from gtts import gTTS
+import simpleaudio as sa
+import tempfile
 import os
-import pygame
-
-pygame.mixer.init()
-
 
 # Define the Chatbot API URL and headers
 api_url = "https://llm.kindo.ai/v1/chat/completions"
@@ -23,21 +17,12 @@ headers = {
     "content-type": "application/json"
 }
 
-# Initialize ElevenLabs client
-elevenlabs_client = ElevenLabs(api_key="ae38aba75e228787e91ac4991fc771f8")  # Replace with your ElevenLabs API key
-
 # Function to extract text from PDF
 def extract_text_from_pdf(uploaded_pdf):
     pdf_reader = PdfReader(uploaded_pdf)
     text = ""
     for page in pdf_reader.pages:
         text += page.extract_text()
-    return text
-
-# Function to extract text from Word file (if needed in the future)
-def extract_text_from_word(file):
-    doc = Document(file)
-    text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
     return text
 
 # Function to query the Chatbot API
@@ -59,39 +44,24 @@ def ask_question(question, context, model_name="azure/gpt-4o"):
         st.error(f"API request failed with status code {response.status_code}")
         return None
 
-# Function to play audio using pygame (with pause functionality)
-def play_audio_stream(audio_stream):
-    # Ensure pygame mixer is initialized
-    if not pygame.mixer.get_init():
-        pygame.mixer.init()
-
-    # Save audio stream to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
-        for chunk in audio_stream:
-            temp_audio.write(chunk)
-        temp_audio_name = temp_audio.name
-
-    # Load and play the audio file
-    pygame.mixer.music.load(temp_audio_name)
-    pygame.mixer.music.play(loops=0, start=0.0)
-
-    # Return the audio file path so it can be used for pause/resume functionality
-    return temp_audio_name
-
-# Function to convert text to speech
-def text_to_speech(text, voice_id="voice_id"):
+# Function to convert text to speech using gTTS and play it
+def text_to_speech(text):
     try:
-        audio_stream = elevenlabs_client.text_to_speech.convert_as_stream(
-            voice_id=voice_id,
-            text=text, 
-            model_id="eleven_multilingual_v2", 
-            voice_settings=VoiceSettings(stability=0.5,
-                                         similarity_boost=0.75,
-                                         style=0.0)
-        )
-        # Play the audio stream
-        temp_audio_name = play_audio_stream(audio_stream)
-        return temp_audio_name
+        # Convert text to speech using gTTS
+        tts = gTTS(text=text, lang='en')
+        
+        # Save the audio to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
+            tts.save(temp_audio.name)
+            temp_audio_path = temp_audio.name
+        
+        # Use simpleaudio to play the audio file
+        wave_obj = sa.WaveObject.from_wave_file(temp_audio_path)
+        play_obj = wave_obj.play()
+        play_obj.wait_done()
+
+        # Remove the temporary file after playback
+        os.remove(temp_audio_path)
     except Exception as e:
         st.error(f"Text-to-speech conversion failed: {e}")
 
@@ -140,12 +110,6 @@ def main():
     if "qa_history" not in st.session_state:
         st.session_state.qa_history = []
 
-    if "audio_playing" not in st.session_state:
-        st.session_state.audio_playing = False
-
-    if "audio_path" not in st.session_state:
-        st.session_state.audio_path = None
-
     # Upload PDF file
     uploaded_pdf = st.file_uploader("Upload a PDF file", type=["pdf"])
     if uploaded_pdf:
@@ -172,22 +136,7 @@ def main():
                 st.session_state.qa_history.append((question, answer))
                 
                 # Convert answer to speech
-                st.session_state.audio_path = text_to_speech(answer, voice_id="okq89CVMFdUItYbOQspc")  # Replace with your ElevenLabs voice ID
-                st.session_state.audio_playing = True
-
-    # Display Play/Pause button if audio is playing
-    if st.session_state.audio_playing:
-        play_pause_button = st.button("Pause" if st.session_state.audio_playing else "Play")
-
-        if play_pause_button:
-            if pygame.mixer.music.get_busy():
-                pygame.mixer.music.stop()
-                st.session_state.audio_playing = False
-            else:
-                # Restart audio from the beginning (not true "resume")
-                pygame.mixer.music.load(st.session_state.audio_path)
-                pygame.mixer.music.play()
-                st.session_state.audio_playing = True
+                text_to_speech(answer)
 
     # Display Q&A history
     if st.session_state.qa_history:
