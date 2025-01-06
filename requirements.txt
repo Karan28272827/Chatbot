@@ -1,9 +1,8 @@
 streamlit
 requests
-google-cloud-speech
-google-auth
-google-auth-oauthlib
-gTTS
-simpleaudio
+python-docx
 PyPDF2
-docx
+elevenlabs
+pygame
+google-cloud-speech
+speechrecognition

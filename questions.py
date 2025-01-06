@@ -7,6 +7,8 @@ from elevenlabs import ElevenLabs
 from elevenlabs import VoiceSettings
 import pygame
 import tempfile
+import os
+from google.cloud import speech
 import speech_recognition as sr
 
 # Define the Chatbot API URL and headers
@@ -85,22 +87,26 @@ def text_to_speech(text, voice_id="voice_id"):
     except Exception as e:
         st.error(f"Text-to-speech conversion failed: {e}")
 
-# Function to capture speech and convert it to text using speech_recognition
+# Function to capture speech and convert it to text using Google Cloud Speech API
 def speech_to_text():
     recognizer = sr.Recognizer()
+
+    # Use the 'with' statement to ensure proper management of the Microphone resource
     with sr.Microphone() as source:
-        st.write("Say something...")
+        print("Say something...")  # You can replace this with a streamlit message
+        recognizer.adjust_for_ambient_noise(source)  # Optional: Adjust for ambient noise
         audio = recognizer.listen(source)
+        
         try:
-            # Use Google's speech recognition (offline works in most cases)
+            # Recognize speech using Google's API
             recognized_text = recognizer.recognize_google(audio)
-            st.write(f"Recognized: {recognized_text}")
+            print(f"Recognized: {recognized_text}")
             return recognized_text
         except sr.UnknownValueError:
-            st.error("Could not understand the audio. Please try again.")
+            print("Google Speech Recognition could not understand audio")
             return ""
         except sr.RequestError as e:
-            st.error(f"Speech recognition service error: {e}")
+            print(f"Could not request results from Google Speech Recognition service; {e}")
             return ""
 
 # Streamlit app
